@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Custom Ternary Triangle</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 40px; }
+    #controls { margin-bottom: 20px; }
+    .triangle-container { position: relative; display: flex; }
+    svg { border: 1px solid #ccc; margin-left: 100px; }
+    .legend {
+      display: inline-block;
+      vertical-align: top;
+      margin-left: 40px;
+    }
+    .legend-entry {
+      margin: 5px 0;
+    }
+    .legend-icon {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      margin-right: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Custom Triangle Plot</h2>
+  <div id="controls">
+    <label>Corner A: <input type="text" id="cornerA" value="A"></label>
+    <label>Corner B: <input type="text" id="cornerB" value="B"></label>
+    <label>Corner C: <input type="text" id="cornerC" value="C"></label>
+    <br><br>
+    <label>A% <input type="number" id="aVal" min="0" max="100"></label>
+    <label>B% <input type="number" id="bVal" min="0" max="100"></label>
+    <label>C% <input type="number" id="cVal" min="0" max="100"></label>
+    <label>Label <input type="text" id="pointLabel"></label>
+    <label>Color <input type="color" id="colorVal" value="#ff0000"></label>
+    <label>Icon
+      <select id="iconVal">
+        <option value="●">●</option>
+        <option value="▲">▲</option>
+        <option value="■">■</option>
+        <option value="★">★</option>
+        <option value="⬤">⬤</option>
+      </select>
+    </label>
+    <button onclick="addPoint()">Add Point</button>
+  </div>
+
+  <div class="triangle-container">
+    <svg id="triangle" width="600" height="500"></svg>
+    <div class="legend" id="legend">
+      <strong>Legend:</strong>
+    </div>
+  </div>
+
+  <script>
+    const svg = document.getElementById('triangle');
+    const legend = document.getElementById('legend');
+
+    const trianglePoints = [
+      [300, 50],   // Top (A)
+      [100, 450],  // Bottom-left (B)
+      [500, 450]   // Bottom-right (C)
+    ];
+
+    // Draw triangle
+    const poly = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+    poly.setAttribute("points", trianglePoints.map(p => p.join(",")).join(" "));
+    poly.setAttribute("fill", "none");
+    poly.setAttribute("stroke", "black");
+    svg.appendChild(poly);
+
+    // Corner labels
+    const cornerLabels = ['cornerA', 'cornerB', 'cornerC'];
+    const cornerLabelOffsets = [
+      -10,    // A (top)
+      30,     // B (bottom-left)
+      30      // C (bottom-right)
+    ];
+
+    trianglePoints.forEach((pt, i) => {
+      const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      text.setAttribute("x", pt[0]);
+      text.setAttribute("y", pt[1] + cornerLabelOffsets[i]);
+      text.setAttribute("text-anchor", "middle");
+      text.setAttribute("id", `corner-label-${i}`);
+      text.textContent = document.getElementById(cornerLabels[i]).value;
+      svg.appendChild(text);
+    });
+
+    function updateCornerLabels() {
+      trianglePoints.forEach((pt, i) => {
+        const text = document.getElementById(`corner-label-${i}`);
+        text.textContent = document.getElementById(cornerLabels[i]).value;
+      });
+    }
+
+    cornerLabels.forEach(id => document.getElementById(id).addEventListener('input', updateCornerLabels));
+
+    function ternaryToXY(a, b, c) {
+      const total = a + b + c;
+      if (total === 0) return [0, 0];
+      a /= total;
+      b /= total;
+      c /= total;
+
+      // Triangle coordinates
+      const x = b * trianglePoints[1][0] + c * trianglePoints[2][0] + a * trianglePoints[0][0];
+      const y = b * trianglePoints[1][1] + c * trianglePoints[2][1] + a * trianglePoints[0][1];
+      return [x, y];
+    }
+
+    function addPoint() {
+      const a = parseFloat(document.getElementById('aVal').value);
+      const b = parseFloat(document.getElementById('bVal').value);
+      const c = parseFloat(document.getElementById('cVal').value);
+      const label = document.getElementById('pointLabel').value;
+      const color = document.getElementById('colorVal').value;
+      const icon = document.getElementById('iconVal').value;
+
+      if ((a + b + c !== 100) || isNaN(a) || isNaN(b) || isNaN(c)) {
+        alert("Percentages must add to 100.");
+        return;
+      }
+
+      const [x, y] = ternaryToXY(a, b, c);
+      const point = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      point.setAttribute("x", x);
+      point.setAttribute("y", y);
+      point.setAttribute("text-anchor", "middle");
+      point.setAttribute("alignment-baseline", "middle");
+      point.setAttribute("fill", color);
+      point.textContent = icon;
+      svg.appendChild(point);
+
+      const entry = document.createElement('div');
+      entry.className = 'legend-entry';
+      entry.innerHTML = `<span class="legend-icon" style="color:${color};">${icon}</span> ${label}`;
+      legend.appendChild(entry);
+    }
+  </script>
+</body>
+</html>
