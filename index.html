@@ -65,14 +65,57 @@
       [500, 450]   // Bottom-right (C)
     ];
 
-    // Draw triangle
+    function ternaryToXY(a, b, c) {
+      const total = a + b + c;
+      if (total === 0) return [0, 0];
+      a /= total;
+      b /= total;
+      c /= total;
+
+      const x = b * trianglePoints[1][0] + c * trianglePoints[2][0] + a * trianglePoints[0][0];
+      const y = b * trianglePoints[1][1] + c * trianglePoints[2][1] + a * trianglePoints[0][1];
+      return [x, y];
+    }
+
+    function drawLineByTernary(p1, p2) {
+      const [x1, y1] = ternaryToXY(p1.a * 100, p1.b * 100, p1.c * 100);
+      const [x2, y2] = ternaryToXY(p2.a * 100, p2.b * 100, p2.c * 100);
+      const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      line.setAttribute("x1", x1);
+      line.setAttribute("y1", y1);
+      line.setAttribute("x2", x2);
+      line.setAttribute("y2", y2);
+      line.setAttribute("stroke", "#ccc");
+      line.setAttribute("stroke-dasharray", "4,2");
+      svg.appendChild(line);
+    }
+
+    function drawGuideLines(steps = 10) {
+      for (let i = 10; i < 100; i += steps) {
+        const percent = i / 100;
+
+        // Parallel to base (A axis)
+        drawLineByTernary({ a: percent, b: 1 - percent, c: 0 }, { a: percent, b: 0, c: 1 - percent });
+
+        // Parallel to right (B axis)
+        drawLineByTernary({ a: 1 - percent, b: percent, c: 0 }, { a: 0, b: percent, c: 1 - percent });
+
+        // Parallel to left (C axis)
+        drawLineByTernary({ a: 1 - percent, b: 0, c: percent }, { a: 0, b: 1 - percent, c: percent });
+      }
+    }
+
+    drawGuideLines(); // Draw guide lines FIRST
+
+    // Now draw triangle border
     const poly = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
     poly.setAttribute("points", trianglePoints.map(p => p.join(",")).join(" "));
     poly.setAttribute("fill", "none");
     poly.setAttribute("stroke", "black");
+    poly.setAttribute("stroke-width", "2");
     svg.appendChild(poly);
 
-    // Corner labels
+    // Labels
     const cornerLabels = ['cornerA', 'cornerB', 'cornerC'];
     const cornerLabelOffsets = [-10, 30, 30];
 
@@ -96,18 +139,6 @@
     cornerLabels.forEach(id =>
       document.getElementById(id).addEventListener('input', updateCornerLabels)
     );
-
-    function ternaryToXY(a, b, c) {
-      const total = a + b + c;
-      if (total === 0) return [0, 0];
-      a /= total;
-      b /= total;
-      c /= total;
-
-      const x = b * trianglePoints[1][0] + c * trianglePoints[2][0] + a * trianglePoints[0][0];
-      const y = b * trianglePoints[1][1] + c * trianglePoints[2][1] + a * trianglePoints[0][1];
-      return [x, y];
-    }
 
     function addPoint() {
       const a = parseFloat(document.getElementById('aVal').value);
@@ -137,36 +168,6 @@
       entry.innerHTML = `<span class="legend-icon" style="color:${color};">${icon}</span> ${label}`;
       legend.appendChild(entry);
     }
-
-    function drawLineByTernary(p1, p2) {
-      const [x1, y1] = ternaryToXY(p1.a * 100, p1.b * 100, p1.c * 100);
-      const [x2, y2] = ternaryToXY(p2.a * 100, p2.b * 100, p2.c * 100);
-      const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-      line.setAttribute("x1", x1);
-      line.setAttribute("y1", y1);
-      line.setAttribute("x2", x2);
-      line.setAttribute("y2", y2);
-      line.setAttribute("stroke", "#ccc");
-      line.setAttribute("stroke-dasharray", "4,2");
-      svg.appendChild(line);
-    }
-
-    function drawGuideLines(steps = 10) {
-      for (let i = 10; i < 100; i += steps) {
-        const percent = i / 100;
-
-        // Lines parallel to A side (bottom)
-        drawLineByTernary({ a: percent, b: 1 - percent, c: 0 }, { a: percent, b: 0, c: 1 - percent });
-
-        // Lines parallel to B side (right)
-        drawLineByTernary({ a: 1 - percent, b: percent, c: 0 }, { a: 0, b: percent, c: 1 - percent });
-
-        // Lines parallel to C side (left)
-        drawLineByTernary({ a: 1 - percent, b: 0, c: percent }, { a: 0, b: 1 - percent, c: percent });
-      }
-    }
-
-    drawGuideLines(); // draw guide lines
   </script>
 </body>
 </html>
