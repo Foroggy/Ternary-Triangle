@@ -29,7 +29,144 @@
   <div id="controls">
     <label>Corner A: <input type="text" id="cornerA" value="A"></label>
     <label>Corner B: <input type="text" id="cornerB" value="B"></label>
-    <label>Corner C: <input type="text" id="cornerC"
+    <label>Corner C: <input type="text" id="cornerC" value="C"></label>
+    <br><br>
+    <label>A% <input type="number" id="aVal" min="0" max="100"></label>
+    <label>B% <input type="number" id="bVal" min="0" max="100"></label>
+    <label>C% <input type="number" id="cVal" min="0" max="100"></label>
+    <label>Label <input type="text" id="pointLabel"></label>
+    <label>Color <input type="color" id="colorVal" value="#ff0000"></label>
+    <label>Icon
+      <select id="iconVal">
+        <option value="●">●</option>
+        <option value="▲">▲</option>
+        <option value="■">■</option>
+        <option value="★">★</option>
+        <option value="⬤">⬤</option>
+      </select>
+    </label>
+    <button onclick="addPoint()">Add Point</button>
+  </div>
 
+  <div class="triangle-container">
+    <svg id="triangle" width="600" height="500"></svg>
+    <div class="legend" id="legend">
+      <strong>Legend:</strong>
+    </div>
+  </div>
+
+  <script>
+    const svg = document.getElementById('triangle');
+    const legend = document.getElementById('legend');
+
+    const trianglePoints = [
+      [300, 50],   // Top (A)
+      [100, 450],  // Bottom-left (B)
+      [500, 450]   // Bottom-right (C)
+    ];
+
+    // Draw triangle
+    const poly = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+    poly.setAttribute("points", trianglePoints.map(p => p.join(",")).join(" "));
+    poly.setAttribute("fill", "none");
+    poly.setAttribute("stroke", "black");
+    svg.appendChild(poly);
+
+    // Corner labels
+    const cornerLabels = ['cornerA', 'cornerB', 'cornerC'];
+    const cornerLabelOffsets = [-10, 30, 30];
+
+    trianglePoints.forEach((pt, i) => {
+      const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      text.setAttribute("x", pt[0]);
+      text.setAttribute("y", pt[1] + cornerLabelOffsets[i]);
+      text.setAttribute("text-anchor", "middle");
+      text.setAttribute("id", `corner-label-${i}`);
+      text.textContent = document.getElementById(cornerLabels[i]).value;
+      svg.appendChild(text);
+    });
+
+    function updateCornerLabels() {
+      trianglePoints.forEach((pt, i) => {
+        const text = document.getElementById(`corner-label-${i}`);
+        text.textContent = document.getElementById(cornerLabels[i]).value;
+      });
+    }
+
+    cornerLabels.forEach(id =>
+      document.getElementById(id).addEventListener('input', updateCornerLabels)
+    );
+
+    function ternaryToXY(a, b, c) {
+      const total = a + b + c;
+      if (total === 0) return [0, 0];
+      a /= total;
+      b /= total;
+      c /= total;
+
+      const x = b * trianglePoints[1][0] + c * trianglePoints[2][0] + a * trianglePoints[0][0];
+      const y = b * trianglePoints[1][1] + c * trianglePoints[2][1] + a * trianglePoints[0][1];
+      return [x, y];
+    }
+
+    function addPoint() {
+      const a = parseFloat(document.getElementById('aVal').value);
+      const b = parseFloat(document.getElementById('bVal').value);
+      const c = parseFloat(document.getElementById('cVal').value);
+      const label = document.getElementById('pointLabel').value;
+      const color = document.getElementById('colorVal').value;
+      const icon = document.getElementById('iconVal').value;
+
+      if ((a + b + c !== 100) || isNaN(a) || isNaN(b) || isNaN(c)) {
+        alert("Percentages must add to 100.");
+        return;
+      }
+
+      const [x, y] = ternaryToXY(a, b, c);
+      const point = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      point.setAttribute("x", x);
+      point.setAttribute("y", y);
+      point.setAttribute("text-anchor", "middle");
+      point.setAttribute("alignment-baseline", "middle");
+      point.setAttribute("fill", color);
+      point.textContent = icon;
+      svg.appendChild(point);
+
+      const entry = document.createElement('div');
+      entry.className = 'legend-entry';
+      entry.innerHTML = `<span class="legend-icon" style="color:${color};">${icon}</span> ${label}`;
+      legend.appendChild(entry);
+    }
+
+    function drawLineByTernary(p1, p2) {
+      const [x1, y1] = ternaryToXY(p1.a * 100, p1.b * 100, p1.c * 100);
+      const [x2, y2] = ternaryToXY(p2.a * 100, p2.b * 100, p2.c * 100);
+      const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      line.setAttribute("x1", x1);
+      line.setAttribute("y1", y1);
+      line.setAttribute("x2", x2);
+      line.setAttribute("y2", y2);
+      line.setAttribute("stroke", "#ccc");
+      line.setAttribute("stroke-dasharray", "4,2");
+      svg.appendChild(line);
+    }
+
+    function drawGuideLines(steps = 10) {
+      for (let i = 10; i < 100; i += steps) {
+        const percent = i / 100;
+
+        // Lines parallel to A side (bottom)
+        drawLineByTernary({ a: percent, b: 1 - percent, c: 0 }, { a: percent, b: 0, c: 1 - percent });
+
+        // Lines parallel to B side (right)
+        drawLineByTernary({ a: 1 - percent, b: percent, c: 0 }, { a: 0, b: percent, c: 1 - percent });
+
+        // Lines parallel to C side (left)
+        drawLineByTernary({ a: 1 - percent, b: 0, c: percent }, { a: 0, b: 1 - percent, c: percent });
+      }
+    }
+
+    drawGuideLines(); // draw guide lines
+  </script>
 </body>
 </html>
