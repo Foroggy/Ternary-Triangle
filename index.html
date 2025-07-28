@@ -144,35 +144,36 @@
     svg.appendChild(poly);
 
     function addPoint() {
-      const a = parseFloat(document.getElementById('aVal').value);
-      const b = parseFloat(document.getElementById('bVal').value);
-      const c = parseFloat(document.getElementById('cVal').value);
-      const label = document.getElementById('pointLabel').value;
-      const color = document.getElementById('colorVal').value;
-      const icon = document.getElementById('iconVal').value;
+  const a = parseFloat(document.getElementById('aVal').value);
+  const b = parseFloat(document.getElementById('bVal').value);
+  const c = parseFloat(document.getElementById('cVal').value);
+  const label = document.getElementById('pointLabel').value;
+  const color = document.getElementById('colorVal').value;
+  const icon = document.getElementById('iconVal').value;
 
-      if ((a + b + c !== 100) || isNaN(a) || isNaN(b) || isNaN(c)) {
-        alert("Percentages must add to 100.");
-        return;
-      }
+  if ((a + b + c !== 100) || isNaN(a) || isNaN(b) || isNaN(c)) {
+    alert("Percentages must add to 100.");
+    return;
+  }
 
-      const [x, y] = ternaryToXY(a, b, c);
-      const point = document.createElementNS("http://www.w3.org/2000/svg", "text");
-      point.setAttribute("x", x);
-      point.setAttribute("y", y);
-      point.setAttribute("text-anchor", "middle");
-      point.setAttribute("alignment-baseline", "middle");
-      point.setAttribute("fill", color);
-      point.textContent = icon;
-      svg.appendChild(point);
+  const [x, y] = ternaryToXY(a, b, c);
+  const point = document.createElementNS("http://www.w3.org/2000/svg", "text");
+  point.setAttribute("x", x);
+  point.setAttribute("y", y);
+  point.setAttribute("text-anchor", "middle");
+  point.setAttribute("alignment-baseline", "middle");
+  point.setAttribute("fill", color);
+  point.textContent = icon;
+  svg.appendChild(point);
 
-      const entry = document.createElement('div');
-      entry.className = 'legend-entry';
-      entry.innerHTML = `<span class="legend-icon" style="color:${color};">${icon}</span> ${label}`;
-      legend.appendChild(entry);
+  const entry = document.createElement('div');
+  entry.className = 'legend-entry';
+  entry.innerHTML = `<span class="legend-icon" style="color:${color};">${icon}</span> ${label} (A: ${a}%, B: ${b}%, C: ${c}%)`;
+  legend.appendChild(entry);
 
-      updateCornerLabelsWithPercentages(a, b, c);
-    }
+  updateCornerLabelsWithPercentages(a, b, c);
+}
+
   </script>
 </body>
 </html>
