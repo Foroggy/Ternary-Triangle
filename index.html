@@ -45,6 +45,12 @@
         <option value="⬤">⬤</option>
       </select>
     </label>
+    <br><br>
+    <!-- New slider for icon size -->
+    <label>Icon Size: 
+      <input type="range" id="iconSize" min="1" max="100" value="50">
+      <span id="sizeValue">50</span>
+    </label>
     <button onclick="addPoint()">Add Point</button>
   </div>
 
@@ -58,15 +64,20 @@
   <script>
     const svg = document.getElementById('triangle');
     const legend = document.getElementById('legend');
-
     const trianglePoints = [
       [300, 50],   // Top (A)
       [100, 450],  // Bottom-left (B)
       [500, 450]   // Bottom-right (C)
     ];
-
     const cornerLabels = ['cornerA', 'cornerB', 'cornerC'];
     const cornerLabelOffsets = [-10, 30, 30];
+    let iconScale = 50; // default slider value
+
+    // Update displayed slider value
+    document.getElementById('iconSize').addEventListener('input', function () {
+      iconScale = +this.value;
+      document.getElementById('sizeValue').textContent = this.value;
+    });
 
     function ternaryToXY(a, b, c) {
       const total = a + b + c;
@@ -74,7 +85,6 @@
       a /= total;
       b /= total;
       c /= total;
-
       const x = b * trianglePoints[1][0] + c * trianglePoints[2][0] + a * trianglePoints[0][0];
       const y = b * trianglePoints[1][1] + c * trianglePoints[2][1] + a * trianglePoints[0][1];
       return [x, y];
@@ -112,7 +122,6 @@
     svg.appendChild(poly);
 
     const labelElements = [];
-
     trianglePoints.forEach((pt, i) => {
       const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
       text.setAttribute("x", pt[0]);
@@ -155,12 +164,13 @@
       point.setAttribute("text-anchor", "middle");
       point.setAttribute("alignment-baseline", "middle");
       point.setAttribute("fill", color);
+      point.setAttribute("font-size", iconScale / 2 + "px"); // scale icon size
       point.textContent = icon;
       svg.appendChild(point);
 
       const entry = document.createElement('div');
       entry.className = 'legend-entry';
-      entry.innerHTML = `<span class="legend-icon" style="color:${color};">${icon}</span> ${label} (A: ${a}%, B: ${b}%, C: ${c}%)`;
+      entry.innerHTML = `<span class="legend-icon" style="color:${color}; font-size:${iconScale / 2}px;">${icon}</span> ${label} (A: ${a}%, B: ${b}%, C: ${c}%)`;
       legend.appendChild(entry);
     }
   </script>
